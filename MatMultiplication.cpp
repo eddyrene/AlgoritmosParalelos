@@ -126,8 +126,8 @@ int main()
 	{
 		cout<<"prueba con matriz de dimension : "<<d << endl;
 		p.ensaio(d);
-		//p.m3bucles();
-		p.m6bucles();
+		p.m3bucles();
+		//p.m6bucles();
 		d+=1000;
 		vezes++;
 	}
