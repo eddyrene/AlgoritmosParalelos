@@ -11,21 +11,21 @@ void Mat_vect_mult(
 	int local_n,
 	MPI_Comm comm )
 {
-	 double* x;
-	 int local_i, j;
-	 int local_ok = 1;
-
-
- x = malloc(n*sizeof(double));
- MPI_Allgather(local_x, local_n, MPI_DOUBLE, x, local_n, MPI_DOUBLE, comm);
- 
- for (local_i = 0; local_i < local_m; local_i++) 
- {
- 	local_y[local_i] = 0.0;
- 	for (j = 0; j < n; j++)
- 		local_y[local_i] += local_A[local_i*n+j]*x[j];
- }
- free(x);
+   double* x;
+   int local_i, j;
+   int local_ok ;
+   local_ok= 1;
+  x = malloc(n*sizeof(double));
+  if( x == NULL) 
+    local_ok =0 ;
+  MPI_Allgather(local_x, local_n, MPI_DOUBLE, x, local_n, MPI_DOUBLE, comm);
+  for (local_i = 0; local_i < local_m; local_i++) 
+  {
+  	local_y[local_i] = 0.0;
+  	for (j = 0; j < n; j++)
+  		local_y[local_i] += local_A[local_i*n+j]*x[j];
+  }
+  free(x);
 }
 
 void Print_vector(
@@ -55,9 +55,8 @@ MPI_Comm  comm)
 }
 int main(void)
 {
-	int numtasks, rank, sendcount, recvcount, source;
-	int size =4;
-
+	int numtasks, rank; /*sendcount, recvcount, source;*/
+	int size =1; 
 	double matriz[16] ={1.0, 2.0, 3.0, 4.0 , 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0};
 	double vector[4] = {1.0, 2.0, 3.0, 4.0};
   	double result[4]={0,0,0,0};
@@ -67,14 +66,13 @@ int main(void)
       {9.0, 10.0, 11.0, 12.0},
       {13.0, 14.0, 15.0, 16.0}  };*/
   	//double recvbuf[SIZE];
-
 	MPI_Init(NULL,NULL);
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  	MPI_Comm_size(MPI_COMM_WORLD, &	numtasks);
-  	int n =size;
-	int local_n = n/numtasks;
-	int local_m = n/numtasks;;
+  MPI_Comm_size(MPI_COMM_WORLD, &	numtasks);
+  int n =size;
+	int local_n = 16/numtasks;
+	int local_m = 4/numtasks;
 
 
 		//Print_vector(result,local_n, n,"resultado", rank, MPI_COMM_WORLD);
@@ -85,7 +83,7 @@ int main(void)
   				printf("%f ", result[j]);
   			printf("\n");
   		*/
-  		Print_vector(result,local_n, n,"resultado", rank, MPI_COMM_WORLD);
+  		//Print_vector(result,local_n, n,"resultado", rank, MPI_COMM_WORLD);
 
 	MPI_Finalize();
 	/* code */

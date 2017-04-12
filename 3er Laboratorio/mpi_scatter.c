@@ -38,4 +38,5 @@ else
   printf("Must specify %d processors. Terminating.\n",SIZE);
 
 MPI_Finalize();
+return 0;
 }
