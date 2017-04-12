@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int ff =  20; 
+int cc = 5 ;
 
 void print_serial(double v[] , int t)
 {
@@ -12,34 +14,51 @@ void print_serial(double v[] , int t)
 	}
 }
 
-void llenar_mat(double m[][], int c, int f)
+void llenar(double m[][cc], double b[], int f , int c)
 {
-	for(int i =0;i<f;i++)
-		for(int j =0;j<c;j++)
+	int i=0;
+	for(i =0;i<f;i++)
+	{
+		int j=0;
+		for(j =0;j<c;j++)
 		{
-			m[i][j]= rand() % 100;
+			m[i][j]= rand() % 10;
 		}
+
+		b[i] = rand() % 10; 
+	}
 }
+
+
 int main(void)
 {
 	int my_rank, comm_sz;
+	double a[ff][cc], b[ff], cpart[cc], ctotal[ff];
+	llenar(a,b, ff, cc);
+	print_serial(cpart,cc);
+
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-	double a[100][25], b[100], cpart[25], ctotal[100];
+	
 	int i,k;
-	for(i=0;i<25;i++)
+	
+	for(i=0;i<cc;i++)
 	{
    		cpart[i]=0;
-   		for(k=0;k<100;k++)
+   		for(k=0;k<ff;k++)
 	   {
 	      cpart[i]=cpart[i]+a[k][i]*b[k];
 	   }
 	}
-	print_serial(cpart,25);
+	
 	//print_serial();
 
-	MPI_Allgather(cpart,25,MPI_INT,ctotal,25,MPI_INT,MPI_COMM_WORLD);
+	MPI_Allgather(cpart,5,MPI_INT,ctotal,5,MPI_INT,MPI_COMM_WORLD);
 	MPI_Finalize();
+
+	printf("%s \n", "aqui");
+		//print_serial(cpart,cc);
+
 		return 0;
 } 
