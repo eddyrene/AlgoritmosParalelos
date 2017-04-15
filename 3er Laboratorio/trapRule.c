@@ -42,6 +42,9 @@ int main(void)
 	
 	h = (b - a)/n;
 	local_n = n/comm_sz;
+
+		printf(" local_N : %d =\n ",local_n );
+
 	/* h is the same for all processes */
 	/* So is the number of trapezoids */
 	
