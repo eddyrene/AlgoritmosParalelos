@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SIZE 100
-//typedef double mat [SIZE][SIZE];
+#define SIZE 1024
+//typedef double mat 4[SIZE][SIZE];
 
 
 void Print_vector(
@@ -33,32 +33,53 @@ void Print_vector(
     MPI_Gather(local_b, local_n, MPI_DOUBLE, b, local_n, MPI_DOUBLE, 0, comm);
   
 }
+/*
+	void Read_vector(
+	double    local_a[] ,
+	int     local_n,
+	int     n,
+	int     my_rank,
+	MPI_Comm  comm) 
+	{
+	  double* a = NULL;
+	  int i;
+
+	  if (my_rank == 0) 
+	  {
+
+	    a = (double*)malloc(n*sizeof(double));
+	    printf("Generando Vector \n" );
+	    for (i = 0; i < n; i++)
+	      a[i]=  rand() % 10;
+	    MPI_Scatter(a, local_n, MPI_DOUBLE, local_a, local_n,MPI_DOUBLE, 0, comm);
+	    free(a);
+	  } 
+	  else 
+	  {
+	    MPI_Scatter(a, local_n, MPI_DOUBLE, local_a, local_n,MPI_DOUBLE, 0, comm);
+	  }
+
+	}
+*/
 void Read_vector(
-double    local_a[] /*   out  */,
-int     local_n,
-int     n,
-int     my_rank,
-MPI_Comm  comm) 
-{
-  double* a = NULL;
-  int i;
+         char*  prompt     /* in  */,
+         float  local_x[]  /* out */, 
+         int    local_n    /* in  */, 
+         int    my_rank    /* in  */,
+         int    p          /* in  */) {
 
-  if (my_rank == 0) 
-  {
+    int   i;
+    float temp[SIZE];
 
-    a = malloc(n*sizeof(double));
-    printf("Generando Vector \n" );
-    for (i = 0; i < n; i++)
-      a[i]=  rand() % 10;
-    MPI_Scatter(a, local_n, MPI_DOUBLE, local_a, local_n,MPI_DOUBLE, 0, comm);
-    free(a);
-  } 
-  else 
-  {
-    MPI_Scatter(a, local_n, MPI_DOUBLE, local_a, local_n,MPI_DOUBLE, 0, comm);
-  }
+    if (my_rank == 0) {
+        printf("%s\n", prompt);
+        for (i = 0; i < p*local_n; i++) 
+            temp[i]=rand() % 10;
+    }
+    MPI_Scatter(temp, local_n, MPI_flo, local_x, local_n, MPI_DOUBLE,
+        0, MPI_COMM_WORLD);
 
-}
+}  /* Read_vector */
 void Read_matrix(
          double        local_A [] /* out */, 
          int             local_m  /* in  */, 
@@ -77,7 +98,7 @@ void Read_matrix(
 
     if (my_rank == 0) {
 
-      temp= malloc(p*local_m*n*sizeof(double));
+      temp= malloc(n*sizeof(double));
         printf(" Generando Matriz \n");
         for (i = 0; i < p*local_m; i++) 
             for (j = 0; j < n; j++)
@@ -169,23 +190,25 @@ int main(int argc, char* argv[])
     //n=8;
     }
     
-   MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  	//MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
+   //MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     local_m = m/p;
     local_n = n/p;
 
-   Read_matrix(local_A, local_m, n, my_rank, p);
-   Print_matrix(local_A, local_m, n, my_rank, p);
+   //Read_matrix(local_A, local_m, n, my_rank, p);
+   //Print_matrix(local_A, local_m, n, my_rank, p);
 
-    Read_vector(local_x, local_n,n ,my_rank,MPI_COMM_WORLD);
+   // Read_vector(local_x, local_n,n ,my_rank,MPI_COMM_WORLD);
 
-    Print_vector(local_x, local_n, n,my_rank,MPI_COMM_WORLD);
+    Read_vector("Enter the vector", local_x, local_n, my_rank, p, m , n);
+
+    //Print_vector(local_x, local_n, n,my_rank,MPI_COMM_WORLD);
 
 
-    Mat_vect_mult(local_A, local_x, local_y, local_m , n,local_n ,MPI_COMM_WORLD );
+    //Mat_vect_mult(local_A, local_x, local_y, local_m , n,local_n ,MPI_COMM_WORLD );
     
-    Print_vector(local_y, local_m, n ,my_rank, MPI_COMM_WORLD);
+   // Print_vector(local_y, local_m, n ,my_rank, MPI_COMM_WORLD);
    // printf("Resultado de la multiplicacion \n");
     MPI_Finalize();
 
