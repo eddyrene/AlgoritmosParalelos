@@ -56,11 +56,6 @@ void *Pth_mat_vect(void* rank) {
    int my_first_row = my_rank*local_m;
    int my_last_row = (my_rank+1)*local_m - 1;
 
-#  ifdef DEBUG
-   printf("Thread %ld > my_first_row = %d, my_last_row = %d\n",
-         my_rank, my_first_row, my_last_row);
-#  endif
-
    for (i = my_first_row; i <= my_last_row; i++) {
       y[i] = 0.0;
       for (j = 0; j < n; j++)
@@ -72,28 +67,31 @@ void *Pth_mat_vect(void* rank) {
 
  int main(int argc, char* argv[]) {
 
- 	 m = n = 16384;
- 	 x = new double[m];
+ 	 m = 8;
+ 	 n = 8000000;
+ 	 x = new double[n];
  	 y = new double[m];
  	 A = new double[m*n];
- 	 double start, finish;
+ 	 struct timespec start, finish;
+	double elapsed;
 
 	 long thread;  
 	 pthread_t* thread_handles;
 
 	 thread_count = strtol(argv[1], NULL, 10);
+	 //cout<<"numero de thread: "<< thread_count<<endl;
 	 thread_handles = (pthread_t*) malloc (thread_count*sizeof(pthread_t));
 
-	cout<<"vector "<<endl;
+	//cout<<"vector "<<endl;
 	rand_vector(x, n);
 	//print_vector(x, n);
 
-	cout<<"matriz"<<endl;
-	rand_matrix(A, n, m);
+	//cout<<"matriz"<<endl;
+	rand_matrix(A, m, n);
 	//print_matrix(A, n, m);
 
 	
-	start = clock();
+	clock_gettime(CLOCK_MONOTONIC, &start);
 	 for (thread = 0; thread < thread_count; thread++)
 		pthread_create(&thread_handles[thread], NULL,Pth_mat_vect, (void*) thread);
 
@@ -101,11 +99,13 @@ void *Pth_mat_vect(void* rank) {
 
 	 for (thread = 0; thread < thread_count; thread++)
 	 	pthread_join(thread_handles[thread], NULL);
-	 finish=clock();
-	cout<<"resultado"<<endl; 
-	print_vector(y,n);	 
-
-	cout<<"tiempo de ejecucion "<<finish-start/double(CLOCKS_PER_SEC)*1000<<endl;
+	 
+	clock_gettime(CLOCK_MONOTONIC, &finish);
+	//cout<<"resultado"<<endl; 
+	//print_vector(y,m);	 
+	elapsed = (finish.tv_sec - start.tv_sec);
+	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+	cout<<"tiempo de ejecucion "<<elapsed<<endl;
 
 	 free(thread_handles);
 	 delete [] A; 

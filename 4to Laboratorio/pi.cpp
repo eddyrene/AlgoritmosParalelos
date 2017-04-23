@@ -65,9 +65,9 @@ void* Thread_sum_mutex(void* rank) {
    return NULL;
 }  /* Thread_sum */
 
-   void* Thread_sum_bs(void* rank) {
+void* Thread_sum_bs(void* rank) {
    long my_rank = (long) rank;
-   double factor;
+   double factor, my_sum = 0.0;
    long long i;
    long long my_n = n/thread_count;
    long long my_first_i = my_n*my_rank;
@@ -78,19 +78,21 @@ void* Thread_sum_mutex(void* rank) {
    else
       factor = -1.0;
 
-   for (i = my_first_i; i < my_last_i; i++, factor = -factor) {
-      while (flag != my_rank);
-      sum += factor/(2*i+1);
-      flag++;  
-    	
-       }
+   for (i = my_first_i; i < my_last_i; i++, factor = -factor) 
+      my_sum += factor/(2*i+1);  
+   
+   while (flag != my_rank);
+   sum += my_sum;  
+   if (my_rank < thread_count-1)
+      flag++;
+
    return NULL;
 }  /* Thread_sum */
 
  int main(int argc, char* argv[]) {
 
- 	 sum =0;
- 	 n=100000;
+ 	 //sum =0;
+ 	 n=100000000;
  	 double start, finish;
 
 	 long thread;  
@@ -102,7 +104,7 @@ void* Thread_sum_mutex(void* rank) {
 	
 	start = clock();
 	 for (thread = 0; thread < thread_count; thread++)
-		pthread_create(&thread_handles[thread], NULL,Thread_sum, (void*) thread);
+		pthread_create(&thread_handles[thread], NULL,Thread_sum_mutex, (void*) thread);
 
 	 //printf("Hello from the main thread\n");
 
@@ -112,7 +114,7 @@ void* Thread_sum_mutex(void* rank) {
 	 sum = 4.0*sum;
 	cout<<"resultado : "<<sum<<endl; 
 
-	cout<<"tiempo de ejecucion "<<finish-start/double(CLOCKS_PER_SEC)*1000<<endl;
+	cout<<"tiempo de ejecucion "<<(finish-start)/double(CLOCKS_PER_SEC)<<endl;
 	 free(thread_handles);
 	 return 0;
 
