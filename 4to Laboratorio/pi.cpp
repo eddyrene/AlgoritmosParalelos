@@ -104,7 +104,7 @@ void* Thread_sum_bs(void* rank) {
 	
 	start = clock();
 	 for (thread = 0; thread < thread_count; thread++)
-		pthread_create(&thread_handles[thread], NULL,Thread_sum_mutex, (void*) thread);
+		pthread_create(&thread_handles[thread], NULL,Thread_sum, (void*) thread);
 
 	 //printf("Hello from the main thread\n");
 
