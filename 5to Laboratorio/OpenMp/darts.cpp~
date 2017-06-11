@@ -1,0 +1,32 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <omp.h>
+#include <cstdlib>
+#include <cstdio>
+
+using namespace std;
+
+double genRandom(double li, double ls)
+{
+	//srand (time(NULL));
+	return li + static_cast <double> (rand()) /( static_cast <double> (RAND_MAX/(ls-li)));
+}
+
+
+int main()
+{
+
+	int number_of_tosses=10000000;
+	int number_in_circle = 0;
+	for(int toss = 0; toss < number_of_tosses; toss++) 
+	{
+		double x = genRandom(-1,1); 
+		double y = genRandom(-1,1); 
+		double dist = sqrt(x*x+y*y);
+		if ( dist<= 1)
+			number_in_circle++;
+	}
+	double pi_estimate = 4*number_in_circle/((double) number_of_tosses);
+	cout<<pi_estimate<<endl;
+}
