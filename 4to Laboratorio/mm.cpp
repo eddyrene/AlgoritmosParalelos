@@ -67,8 +67,8 @@ void *Pth_mat_vect(void* rank) {
 
  int main(int argc, char* argv[]) {
 
- 	 m = 8;
- 	 n = 8000000;
+ 	 m = 8000000;
+ 	 n = 8;
  	 x = new double[n];
  	 y = new double[m];
  	 A = new double[m*n];

@@ -1,0 +1,4 @@
+#!/bin/bash
+cd /home/ecaceres/Laboratorio/4to\ Laboratorio/
+./t 5
+

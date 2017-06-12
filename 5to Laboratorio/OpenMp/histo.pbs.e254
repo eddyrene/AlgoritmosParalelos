@@ -1,0 +1,3 @@
+/var/spool/torque/mom_priv/jobs/254.inkari.SC: línea 1: begin{lstlisting}: no se encontró la orden
+/var/spool/torque/mom_priv/jobs/254.inkari.SC: línea 4: PBS: no se encontró la orden
+/var/spool/torque/mom_priv/jobs/254.inkari.SC: línea 7: end{lstlisting}: no se encontró la orden

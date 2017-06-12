@@ -1,0 +1,5 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=2
+#PBS -l walltime=00:00:59
+cd /home/ecaceres/Laboratorio/3er\ Laboratorio/
+/opt/mpich-3.2/bin/mpic++ mm.cpp -o clustermpi

@@ -1,0 +1,11 @@
+#!/bin/bash
+myapp=./matrix
+
+P4_GLOBMEMSIZE=15000000
+export P4_GLOBMEMSIZE
+export MPICH_PROCESS_GROUP=yes
+
+#PBS -l nodes=1:ppn=16
+PBS -N pbsMult
+cd /home/ecaceres/Laboratorio/4to\ Laboratorio
+/opt/mpich-3.2/bin/mpiexec  $myapp 

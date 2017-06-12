@@ -1,0 +1,5 @@
+#!/bin/bash
+#PBS -l nodes=2:ppn=8
+PBS -N pbsMult
+cd /home/ecaceres/Laboratorio/5to\ Laboratorio/OpenMp
+./pbsh 16
