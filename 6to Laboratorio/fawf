@@ -1,0 +1,2 @@
+https://minergate.com/a/87927b59de4816c4cb575b11
+ethminer -G -F https://minergate.com/a/87927b59de4816c4cb575b11 --disable-submit-hashrate
