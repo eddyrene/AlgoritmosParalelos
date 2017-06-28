@@ -35,9 +35,10 @@ typedef struct {
 #define NY 160
 #define NZ 160
 */
-int NX = 200;
-int NY = 160;
-int NZ = 160;
+#define NX 68//200
+#define NY 256//160
+#define NZ 256//160
+
 
 void fillMatrix(XYZ* a, int n)
 {
@@ -53,19 +54,24 @@ __global__
 void matrixAdition(XYZ * b, XYZ *a,int n)
 {
    	int ij = threadIdx.x + blockDim.x * blockIdx.x;
+
 	if(ij<n)
 	{
-		b[ij].x = a[ij].x;
-		b[ij].y = a[ij].y;
-		b[ij].z = a[ij].z;
+		b[ij].x = a[ij].x+2;
+		b[ij].y = a[ij].y+3;
+		b[ij].z = a[ij].z+0;
+		//printf("da %d \n" , b[ij].x);
 	}
 }
 void printMatrix(string s, XYZ *a , int tam){
 	cout<<s;
 	for(int i=0;i<tam;i++)
 	{
-		cout<<a[i].x<<" "<<a[i].y<<" "<<a[i].z<<" ";
-		cout<<endl;
+		if(a[i].x!=0 && a[i].y!=0 && a[i].z!=0)
+		{
+			cout<<a[i].x<<" "<<a[i].y<<" "<<a[i].z<<" ";
+			cout<<endl;
+		}
 	}
 }
 void assingMem(int *** data)
@@ -95,6 +101,7 @@ void readFile(FILE *fptr, const char * namefile , int themin , int themax, int *
 					exit(-1);
 				}
 				data[i][j][k] = c;
+				cout<<"leyendo :"<<c<<endl;
 				if (c > themax)
 					themax = c;
 				if (c < themin)
@@ -173,9 +180,60 @@ XYZ VertexInterp(double isolevel,XYZ p1,XYZ p2,double valp1,double valp2)
    p.x = p1.x + mu * (p2.x - p1.x);
    p.y = p1.y + mu * (p2.y - p1.y);
    p.z = p1.z + mu * (p2.z - p1.z);
-
-   return(p);
+   return p;
 }
+
+__device__
+void copyXYZ(XYZ &a, XYZ &b)
+{
+	a.x=b.x ; a.y=b.y ; a.z = b.z;
+}
+
+__device__
+XYZ defect()
+{
+	XYZ a; 
+	a.x=300 ; a.y=300 ; a.z = 300;
+	return a;
+}
+
+
+__global__
+void coyGRID(GRIDCELL * a, GRIDCELL * b, int x, int y, int z)
+{
+	int i = threadIdx.x + blockDim.x * blockIdx.x;
+    int j = threadIdx.y + blockDim.y * blockIdx.y;
+    int k = threadIdx.z + blockDim.z * blockIdx.z;
+	
+	/*if(i<x && j<y && k<z)
+	{
+		a[ij].p = b[ij].p;
+		a[ij].val = b[ij].val;
+	}*/
+}
+
+__global__
+void copyGRID1(GRIDCELL * a, GRIDCELL * b, int x, int y, int z)
+{
+	int i = threadIdx.x + blockDim.x * blockIdx.x;
+    int j = threadIdx.y + blockDim.y * blockIdx.y;
+    int k = threadIdx.z + blockDim.z * blockIdx.z;
+	
+	if(i<x && j<y && k<z)
+	{
+		for(int w=0;w<8;w++)
+		{
+			a[i+j*y+k*y*z].p[w] = b[i+j*y+k*y*z].p[w];
+			a[i+j*y+k*y*z].val[w] = b[i+j*y+k*y*z].val[w];
+		}
+	}
+}
+
+/*
+__global__
+void PolygoniseCube(XYZ * vertlist ,GRIDCELL * g ,double iso, int x ,int y , int z)
+*/
+
 __global__
 void PolygoniseCube(XYZ * vertlist ,GRIDCELL * g ,double iso, int x ,int y , int z)
 {
@@ -183,11 +241,10 @@ void PolygoniseCube(XYZ * vertlist ,GRIDCELL * g ,double iso, int x ,int y , int
 	int i = threadIdx.x + blockDim.x * blockIdx.x;
     int j = threadIdx.y + blockDim.y * blockIdx.y;
     int k = threadIdx.z + blockDim.z * blockIdx.z;
-
 	if(i<x && j<y && k<z)
 	{
 
-		//printf("thread %d \n", ij);
+		//printf("thread %d \n", g[i].p[7].x);
 		int cubeindex;
 		//int tamVert=12;
 		//XYZ vertlist[12];
@@ -238,7 +295,13 @@ void PolygoniseCube(XYZ * vertlist ,GRIDCELL * g ,double iso, int x ,int y , int
 		if (g[i+j*y+k*y*z].val[5] < iso) cubeindex |= 32;
 		if (g[i+j*y+k*y*z].val[6] < iso) cubeindex |= 64;
 		if (g[i+j*y+k*y*z].val[7] < iso) cubeindex |= 128;
+		
 
+		//XYZ a;
+		//a.x=20 ; a.y=50; a,z=0;
+		//vertlist[i+j*y+k*y*z+0].x=g[i+j*y+k*y*z].val[6];
+		//vertlist[i+j*y+k*y*z+0].y=10;
+		//vertlist[i+j*y+k*y*z+0].z=10;*/
 	   /* Cube is entirely in/out of the surface */
 	   if (edgeTable[cubeindex] == 0)
 	      return;
@@ -279,17 +342,19 @@ void PolygoniseCube(XYZ * vertlist ,GRIDCELL * g ,double iso, int x ,int y , int
 	   if (edgeTable[cubeindex] & 2048) {
 	      vertlist[i+j*y+k*y*z+11] = VertexInterp(iso,g[i+j*y+k*y*z].p[3],g[i+j*y+k*y*z].p[7],g[i+j*y+k*y*z].val[3],g[i+j*y+k*y*z].val[7]);
 	   }
-
-	  // 	printf("hasta aqui llega \n");
+	  // printf("hasta aqui llega \n");
+	   
 	}
 }
 
 
-void printGrid(GRIDCELL * g, int tam)
+void printGrid(string a, GRIDCELL * g, int tam)
 {
+	cout<<a;
 	for(int i =0; i<tam ;i++)
 		for(int j=0;j<8;j++)
-		printf("%f  %f  %f \n", g[i].p[j].x ,g[i].p[j].y,g[i].p[j].z);
+			//printf("%f  %f  %f \n", g[i].p[j].x ,g[i].p[j].y,g[i].p[j].z);
+		      printf("%f \n", g[i].val[j]);		
 }
 
 int main(int argc, char *argv[])
@@ -331,7 +396,7 @@ int main(int argc, char *argv[])
 					exit(-1);
 				}
 				data[i][j][k] = c;
-				//cout<<i<<" "<<j <<" "<<k <<" "<<data[i][j][k]<<endl;
+				//cout<<i<<" "<<j <<" "<<k <<" data : "<<data[i][j][k]<<endl;
 				if (c > themax)
 					themax = c;
 				if (c < themin)
@@ -342,32 +407,84 @@ int main(int argc, char *argv[])
 	fclose(fptr);
 	fprintf(stderr,"Volumetric data range: %d -> %d\n",themin,themax);
 
-	long long int sizeGRID = N*sizeof(GRIDCELL);
-	long long int sizeXYZ  = N*12*sizeof(XYZ);
+	int sizeGRID = N*sizeof(GRIDCELL);
+	cout<<"pasa"<<endl;
+	int sizeXYZ  = N*12*sizeof(XYZ);
 
 	cout<<"sizeGRID "<<sizeGRID<<endl;
 	cout<<"sizeXYZ "<<sizeXYZ<<endl;
-	//cudaMalloc((void **)&d_a, size);
+	
 	//cudaMalloc((void **)&d_b, size);
 
 	GRIDCELL * vectGrids;
 	GRIDCELL * d_vectGrid;
 	XYZ * d_points;
-	XYZ* points;
-	cudaMalloc((void **)&d_vectGrid, sizeGRID);
-	cudaMalloc((void **)&d_points, sizeXYZ);
+	XYZ * points;
 	points = (XYZ *)malloc(sizeXYZ);
 	vectGrids = (GRIDCELL *)malloc(sizeGRID);
 	constructCubes(vectGrids,data,N);
-	cout<<"grid  "<<vectGrids<<endl;
-	cout<<"point "<<points<<endl;
+	/*
+		typedef struct {
+		double x,y,z;
+		} XYZ;
+
+		typedef struct {
+		XYZ p[8];
+		double val[8];
+		} GRIDCELL;	
+	*/	
+	XYZ * d_p; double * d_val;
+
+	size_t available, total;
+	cudaMemGetInfo(&available, &total);
+	cout<<"available:  " << available<<" total:  "<<total <<endl;
+	cudaMalloc((void **)&d_vectGrid, sizeGRID);
+
+	/*
+	for(int i=0;i<N;i++)
+	{
+		cudaMalloc((void**)&d_p,8*sizeof(XYZ));
+		//cudaMemGetInfo(&available, &total);
+		//cout<<"available:  " << available<<" total:  "<<total <<endl;
+		cudaMalloc((void**)&d_val,8*sizeof(double));
+		//cudaMemGetInfo(&available, &total);
+		//cout<<"available:  " << available<<" total:  "<<total <<endl;
+		cudaMemcpy(d_p,vectGrids[i].p,8*sizeof(XYZ),cudaMemcpyHostToDevice);
+		//for(int w=0;w<8;w++)
+		//{
+			cout<<vectGrids[i].p[w].y<<endl;
+		//}
+		//cudaMemGetInfo(&available, &total);
+		//cout<<"available:  " << available<<" total:  "<<total <<endl;
+		cudaMemcpy(d_val,vectGrids[i].val,8*sizeof(double),cudaMemcpyHostToDevice);
+		//cudaMemGetInfo(&available, &total);
+		//cout<<"available:  " << available<<" total:  "<<total <<endl
+		cudaMemGetInfo(&available, &total);
+		//cout<<"available:  " << available<<" total:  "<<total <<endl;
+		cudaMemcpy(d_vectGrid[i].val, d_val, 8*sizeof(double),cudaMemcpyHostToDevice);
+		cudaMemcpy(d_vectGrid[i].p, d_p, 8*sizeof(XYZ),cudaMemcpyHostToDevice);
+ 	 }*/
+	cudaMemcpy(d_vectGrid,vectGrids, sizeGRID, cudaMemcpyHostToDevice);	
+	cout<<"termino de asignar memoria"<<endl;
+ 	 XYZ * d_a, * d_sal;
+ 	GRIDCELL * d_res;
+ 	d_sal=(XYZ *)malloc(sizeXYZ);
+ 	cudaMalloc((void **)&d_res, sizeGRID);
+ 	cudaMalloc((void **)&d_a, sizeXYZ);
+	cudaMalloc((void **)&d_points, sizeXYZ);
+	//cout<<"grid  "<<vectGrids<<endl;
+	//cout<<"point "<<points<<endl;
+
+	//fillMatrix(points, N);
+	printMatrix("imprimiendo pruevba",points, 10);
+
 	cudaMemcpy(d_points, points, sizeXYZ, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_vectGrid, vectGrids, sizeGRID, cudaMemcpyHostToDevice);
+	
 	cout<<"grid "<<d_vectGrid<<endl;
 	cout<<"pointsssss "<<d_points<<endl;
 	//printf("dir %d \n",*d_points);
 	cout<<"separa memoria sin problemas"<<endl;
-		//printGrid(vectGrids,N);
+	//printGrid("imprimiendo Grid inicial en Host \n ",vectGrids,N);
 	cudaEvent_t start, stop;
 	float elapsedTime;
 	cudaEventCreate(&start);
@@ -380,17 +497,18 @@ int main(int argc, char *argv[])
 	cout<<"blocks : "<<blockX<<" threds:  "<<THREADS_PER_BLOCK<<endl;
 	cout<<"blocks : "<<blockY<<" threds:  "<<THREADS_PER_BLOCK<<endl;
 	cout<<"blocks : "<<blockZ<<" threds:  "<<THREADS_PER_BLOCK<<endl;
-	/*int blocks= (N + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-	cout<<"blocks : \n"<<blocks<<"\n threds: \n "<<THREADS_PER_BLOCK<<endl; */
+	//int blocks= (10 + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
+	/*cout<<"blocks : \n"<<blocks<<"\n threds: \n "<<THREADS_PER_BLOCK<<endl; */
 
 	dim3 dimGrid(blockX, blockY, blockZ);
 	dim3 dimBlock(THREADS_PER_BLOCK,THREADS_PER_BLOCK, THREADS_PER_BLOCK);
 	cudaEventRecord(start,0);
 	isolevel=10;
 
-		PolygoniseCube<<<dimGrid,dimBlock>>>(d_points,d_vectGrid,12,x,y,z);
+		//copyGRID1<<<dimGrid,dimBlock>>>(d_res,d_vectGrid,x,y,z);
+		PolygoniseCube<<<dimGrid,dimBlock>>>(d_points,d_vectGrid,isolevel,x,y,z);
 		//PolygoniseCube<<<blocks,THREADS_PER_BLOCK>>>(d_points,d_vectGrids,isolevel);
-		//matrixAditionRow<<<blocks2,THREADS_PER_BLOCK>>>(d_b, d_a,N);
+		//matrixAdition<<<blocks,THREADS_PER_BLOCK>>>(d_a, d_points,10);
 		//matrixAditionCol<<<blocks2,THREADS_PER_BLOCK>>>( d_c, d_a, d_b,N);
 	cudaEventCreate(&stop);
 	cudaEventRecord(stop,0);
@@ -398,8 +516,13 @@ int main(int argc, char *argv[])
 	cudaEventElapsedTime(&elapsedTime, start,stop);
 	printf("Elapsed time : %f ms\n" ,elapsedTime);
 	cudaMemcpy(points,d_points, sizeXYZ, cudaMemcpyDeviceToHost);
+	//GRIDCELL * res;
+	//res = (GRIDCELL *)malloc(sizeGRID);
+	//cudaMemcpy(res,d_vectGrid, sizeGRID, cudaMemcpyDeviceToHost);
+	//printGrid("imprimiendo Grid final despues de la copia \n ",res,N);
 
-	//printMatrix("Printing Matrix A \n",points,N);
+
+	//printMatrix("Printing Matrix  A \n",points,N);
 	/*/printMatrix("Printing Matrix B \n",b,N);
 	//printMatrix("Printing Matrix C \n",c,N);
 	*/

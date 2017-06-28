@@ -105,39 +105,3 @@ int main(int argc, char *argv[])
 	cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
 	return 0;
 }
-
-
-/*
-void allocateMemory(int *&a, int *&b, int *&c, int *&d_a, int *&d_b, int *&d_c, int N )
-{
-	int size=N*N*sizeof(int);
-	cudaMalloc((void **)&d_a, size);
-	cudaMalloc((void **)&d_b, size);
-	cudaMalloc((void **)&d_c, size);
-
-	a = (int *)malloc(size); 
-	fillMatrix(a, N);
-	b = (int *)malloc(size); 
-	fillMatrix(b, N);
-	c = (int *)malloc(size);
-	cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
-	int blocks= (N*N + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-
-
-	cout<<"blocks :"<<blocks<<endl;
-	
-	cudaEvent_t start, stop;
-	float elapsedTime;
-	cudaEventCreate(&start);
-	cudaEventRecord(start,0);
-		//matrixAdition<<<blocks,THREADS_PER_BLOCK>>>( d_c, d_a, d_b,N);
-		matrixAdition<<<N,N>>>( d_c, d_a, d_b,N);
-	cudaEventCreate(&stop);
-	cudaEventRecord(stop,0);
-	cudaEventSynchronize(stop);
-	cudaEventElapsedTime(&elapsedTime, start,stop);
-	printf("Elapsed time : %f ms\n" ,elapsedTime);
-
-	cudaMemcpy(c, d_c, size, cudaMemcpyDeviceToHost);
-}*/
