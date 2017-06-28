@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace std;
 
-#define TILE_WIDTH 16
+#define TILE_WIDTH 32
 
 void fillMatrix(int* a, int n)
 {
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	srand (time(NULL));
 	int  N= strtol(argv[1], NULL, 10);
 	//cout<<N<<endl; return 1;
-	int THREADS_PER_BLOCK =16;	
+	int THREADS_PER_BLOCK =32;	
 	int *a, *b, *c; // host copies of a, b, c
 	int *d_a, *d_b, *d_c; //device copies of a,b,c
 	//int size = N*N*sizeof(int);
